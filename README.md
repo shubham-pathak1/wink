@@ -16,16 +16,6 @@ window solely to receive tray events.
 - **Allow sleep:** restores normal Windows power behavior.
 - **Quit:** removes the tray icon and exits.
 
-## Build and run
-
-Install the [Rust toolchain](https://www.rust-lang.org/tools/install), then:
-
-```powershell
-cargo build --release
-.\target\release\wink.exe
-```
-
-The release executable is at `target\release\wink.exe`.
 
 ## Screenshots
 
@@ -33,12 +23,9 @@ The release executable is at `target\release\wink.exe`.
 
 ![Wink tray menu](screenshots/s2.png)
 
-## Development
+## Contributing
 
-```powershell
-cargo fmt --check
-cargo check
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
