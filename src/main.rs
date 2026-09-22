@@ -11,12 +11,15 @@ mod windows_app {
     use std::ptr::{null, null_mut};
 
     use windows_sys::Win32::{
-        Foundation::{HWND, LPARAM, LRESULT, POINT, WPARAM},
+        Foundation::{
+            CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HWND, LPARAM, LRESULT, POINT, WPARAM,
+        },
         System::{
             LibraryLoader::GetModuleHandleW,
             Power::{
                 SetThreadExecutionState, ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED,
             },
+            Threading::CreateMutexW,
         },
         UI::{
             Shell::{
@@ -39,9 +42,13 @@ mod windows_app {
     const ID_ALLOW_SLEEP: usize = 2;
     const ID_QUIT: usize = 3;
     const CLASS_NAME: &[u16] = &[87, 105, 110, 107, 84, 114, 97, 121, 0];
+    const INSTANCE_MUTEX: &[u16] = &[
+        76, 111, 99, 97, 108, 92, 87, 105, 110, 107, 46, 83, 105, 110, 103, 108, 101, 73, 110, 115,
+        116, 97, 110, 99, 101, 0,
+    ];
     const TOOLTIP: &[u16] = &[
-        87, 105, 110, 107, 32, 226, 128, 148, 32, 75, 101, 101, 112, 105, 110, 103, 32, 121, 111,
-        117, 114, 32, 80, 67, 32, 97, 119, 97, 107, 101, 0,
+        87, 105, 110, 107, 58, 32, 75, 101, 101, 112, 105, 110, 103, 32, 121, 111, 117, 114, 32,
+        80, 67, 32, 97, 119, 97, 107, 101, 0,
     ];
     const STAY_AWAKE: &[u16] = &[83, 116, 97, 121, 32, 97, 119, 97, 107, 101, 0];
     const ALLOW_SLEEP: &[u16] = &[65, 108, 108, 111, 119, 32, 115, 108, 101, 101, 112, 0];
@@ -54,6 +61,14 @@ mod windows_app {
 
     pub fn run() {
         unsafe {
+            let instance_lock = CreateMutexW(null(), 0, INSTANCE_MUTEX.as_ptr());
+            if instance_lock.is_null() || GetLastError() == ERROR_ALREADY_EXISTS {
+                if !instance_lock.is_null() {
+                    CloseHandle(instance_lock);
+                }
+                return;
+            }
+
             set_keep_awake(true);
 
             let instance = GetModuleHandleW(null());
@@ -82,6 +97,8 @@ mod windows_app {
             );
 
             if window.is_null() {
+                set_keep_awake(false);
+                CloseHandle(instance_lock);
                 return;
             }
 
@@ -90,6 +107,7 @@ mod windows_app {
                 DestroyIcon(TRAY_ICON);
                 TRAY_ICON = null_mut();
                 set_keep_awake(false);
+                CloseHandle(instance_lock);
                 return;
             }
 
@@ -98,6 +116,8 @@ mod windows_app {
                 TranslateMessage(&message);
                 DispatchMessageW(&message);
             }
+
+            CloseHandle(instance_lock);
         }
     }
 

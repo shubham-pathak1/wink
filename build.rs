@@ -25,6 +25,14 @@ fn main() {
         PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is set by Cargo")).join("wink.ico");
     icon.write(File::create(output).expect("failed to create generated icon"))
         .expect("failed to write generated icon");
+    icon.write(File::create("assets/wink.ico").expect("failed to create installer icon"))
+        .expect("failed to write installer icon");
+
+    let mut resources = winresource::WindowsResource::new();
+    resources.set_icon("assets/wink.ico");
+    resources
+        .compile()
+        .expect("failed to embed executable icon");
 }
 
 fn crop_visible_artwork(source: &image::RgbaImage) -> image::RgbaImage {
