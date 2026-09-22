@@ -7,9 +7,6 @@
 A tiny Windows system-tray utility that keeps your computer awake and prevents
 the display from turning off.
 
-Wink has no application window or console. It uses a message-only Windows
-window solely to receive tray events.
-
 ## Tray menu
 
 - **Stay awake:** prevents system sleep and display timeout.
